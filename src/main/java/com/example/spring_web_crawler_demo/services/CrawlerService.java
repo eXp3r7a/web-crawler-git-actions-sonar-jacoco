@@ -1,4 +1,5 @@
 package com.example.spring_web_crawler_demo.services;
+
 import com.example.spring_web_crawler_demo.entities.CrawledData;
 import com.example.spring_web_crawler_demo.entities.Estate;
 import com.example.spring_web_crawler_demo.repositories.EstateRepository;
@@ -24,7 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-public class CrawlerService extends WebCrawler{
+public class CrawlerService extends WebCrawler {
 
     private final EstateRepository estateRepository;
     private final List<String> myCrawlDomains;
@@ -35,8 +36,7 @@ public class CrawlerService extends WebCrawler{
     }
 
     private static final Pattern FILTERS = Pattern.compile(
-            ".*(\\.(css|js|bmp|gif|jpe?g" + "|png|tiff?|mid|mp2|mp3|mp4" +
-                    "|wav|avi|mov|mpeg|ram|m4v|pdf" + "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
+            ".*(\\.(css|js|bmp|gif|jpe?g|png|tiff|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 
 
     @Override
@@ -70,7 +70,7 @@ public class CrawlerService extends WebCrawler{
             data.setTitle(title);
             data.setContent(content);
 
-            if (url.contains("imot") && !url.contains("q-къща/") && !url.contains("/ad/") && !url.contains("/ads/")){
+            if (url.contains("imot") && !url.contains("q-къща/") && !url.contains("/ad/") && !url.contains("/ads/")) {
                 addEstateResultToDbOrWriteToFile(url, title, content);
             }
 
@@ -81,22 +81,22 @@ public class CrawlerService extends WebCrawler{
         }
     }
 
-    private void addEstateResultToDbOrWriteToFile(String url, String title, String content){
+    private void addEstateResultToDbOrWriteToFile(String url, String title, String content) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("debug-log.txt", true))) {
             writer.write("Visited URL: " + url + "\n");
             writer.write("title " + title + "\n");
 
-            if(url.contains("olx.bg")){
+            if (url.contains("olx.bg")) {
                 List<Estate> estatesOlx = handleCrawlerDataFromOlxBg(content);
-                if (!estatesOlx.isEmpty()){
+                if (!estatesOlx.isEmpty()) {
                     //estateRepository.saveAll(estatesOlx);
                         /*for (Estate estate : estatesOlx){
                                 writer.write("content " + estate + "\n");
                         }*/
                 }
-            }else if (url.contains("alo.bg")){
+            } else if (url.contains("alo.bg")) {
                 List<Estate> estatesAloBg = handleCrawlerDataFromAloBg(content);
-                if(!estatesAloBg.isEmpty()){
+                if (!estatesAloBg.isEmpty()) {
                     //estateRepository.saveAll(estatesAloBg);
                         /*for(Estate estate : estatesAloBg){
                                 writer.write("content " + estate + "\n");
@@ -136,8 +136,8 @@ public class CrawlerService extends WebCrawler{
             CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
             CrawlController controller2 = new CrawlController(config2, pageFetcher2, robotstxtServer);
 
-            List<String> crawler1Domain = ImmutableList.of("https://www.olx.bg/q-imoti/");
-            List<String> crawler2Domain = ImmutableList.of("https://www.alo.bg/obiavi/imoti-prodajbi/apartamenti-stai/");
+            List<String> crawler1Domain = List.of("https://www.olx.bg/q-imoti/");
+            List<String> crawler2Domain = List.of("https://www.alo.bg/obiavi/imoti-prodajbi/apartamenti-stai/");
 
             // Add seed URLs (starting points for the crawler)
             controller.addSeed("https://www.olx.bg/q-imoti/");
@@ -163,39 +163,36 @@ public class CrawlerService extends WebCrawler{
         return "Crawling has started!";
     }
 
-    public List<Estate> handleCrawlerDataFromOlxBg(String content){
+    public List<Estate> handleCrawlerDataFromOlxBg(String content) {
         List<Estate> estateList = new ArrayList<>();
-        content=content.replaceAll("Последвай \\s?",".\n");
-        content=content.replaceAll("Промотирана обява\\s?","");
-        content=content.replaceAll("Запази търсенето Ще те известим, когато има нови обяви по зададените критерии. Запази \\s?","");
+        content = content.replaceAll("Последвай \\s?", ".\n");
+        content = content.replaceAll("Промотирана обява\\s?", "");
+        content = content.replaceAll("Запази търсенето Ще те известим, когато има нови обяви по зададените критерии. Запази \\s?", "");
 
         // Split each row into parts (adjust the delimiter as needed)
         String[] rows = content.split("\n");
 
         for (String row : rows) {
             // Split each row into parts (adjust the delimiter as needed)
-            if(row.length() > 1){
-                if(!row.contains("Навигиране до") && !row.contains("1 2 3 ... 25 Подобни") && !row.contains("промяна на предназначение")){
-                    Estate estate = extractEstateForOlxBg(row);
-                    if(estate.getTitle() != null){
-                        estateList.add(estate);
-                    }
+            if (row.length() > 1 && !row.contains("Навигиране до") && !row.contains("1 2 3 ... 25 Подобни") && !row.contains("промяна на предназначение")) {
+                Estate estate = extractEstateForOlxBg(row);
+                if (estate.getTitle() != null) {
+                    estateList.add(estate);
                 }
             }
         }
         return estateList;
     }
 
-    private static Estate extractEstateForOlxBg(String contentRow){
+    private static Estate extractEstateForOlxBg(String contentRow) {
         Estate estate = new Estate();
         //Title
         Pattern pattern = Pattern.compile("(.+?)\\s\\d{1,3}(?:\\s?\\d{3})*\\s(?:лв\\.|€|гр\\.\\s)");
         Matcher matcher = pattern.matcher(contentRow);
-        if(matcher.find()){
+        if (matcher.find()) {
             estate.setTitle(matcher.group(1).trim());
-        }
-        else{
-            pattern = Pattern.compile("(.+?)\\s(?:гр\\.\\s)");
+        } else {
+            pattern = Pattern.compile("(.+?)\\sгр\\.\\s");
             matcher = pattern.matcher(contentRow);
             estate.setTitle(matcher.group(1).trim());
         }
@@ -203,32 +200,31 @@ public class CrawlerService extends WebCrawler{
         //Price
         pattern = Pattern.compile("(\\d{1,3}(?:\\s?\\d{3})*)\\s(лв\\.|€)");
         matcher = pattern.matcher(contentRow);
-        if (matcher.find()){
+        if (matcher.find()) {
             estate.setPrice(matcher.group(1).trim() + " " + matcher.group(2));
         }
 
         //Location
-        if(contentRow.contains("По договаряне")){
+        if (contentRow.contains("По договаряне")) {
             pattern = Pattern.compile("По договаряне\\s+(.*?)-");
-        }else {
+        } else {
             pattern = Pattern.compile("(?:лв\\.|€|гр\\.)\\s+(.*?)-");
         }
         matcher = pattern.matcher(contentRow);
         //Check location for "гр."
-        if (matcher.find() && matcher.group(1).trim().contains("гр.")){
+        if (matcher.find() && matcher.group(1).trim().contains("гр.")) {
             estate.setLocation(matcher.group(1).trim());
-        } else if (matcher.find()){
+        } else if (matcher.find()) {
             estate.setLocation("гр. " + matcher.group(1).trim());
         }
 
         //Area
-        if(contentRow.contains("дка") || contentRow.contains("кв.м")){
-            if(contentRow.contains("кв.м")){
+        if (contentRow.contains("дка") || contentRow.contains("кв.м")) {
+            if (contentRow.contains("кв.м")) {
                 pattern = Pattern.compile("(\\d+) кв\\.м");
                 matcher = pattern.matcher(contentRow);
                 estate.setArea(matcher.group(1).trim() + " кв.м");
-            }
-            else {
+            } else {
                 pattern = Pattern.compile("(\\d+) дка ");
                 matcher = pattern.matcher(contentRow);
                 estate.setArea(matcher.group(1).trim() + " дка");
@@ -241,33 +237,33 @@ public class CrawlerService extends WebCrawler{
         return estate;
     }
 
-    public List<Estate> handleCrawlerDataFromAloBg(String content){
+    public List<Estate> handleCrawlerDataFromAloBg(String content) {
         List<Estate> estateList = new ArrayList<>();
 
-        content=content.replaceAll("Toggle navigation Публикувай (.+?) Степен на завършеност преди 30+ дни","");
-        content=content.replaceAll("Сайт за обяви alo.bg (.+?) Вижте повече Ok","");
+        content = content.replaceAll("Toggle navigation Публикувай (.+?) Степен на завършеност преди 30+ дни", "");
+        content = content.replaceAll("Сайт за обяви alo.bg (.+?) Вижте повече Ok", "");
         //Every property to new line
-        content=content.replaceAll("Вид на имота:\\s?","\n");
-        content=content.replaceAll("Етажност:\\s?","\n");
-        content=content.replaceAll("Вид квартира:\\s?","\n");
-        content=content.replaceAll("/кв.м\\)\\s?","/кв.м)\n");
-        content=content.replaceAll("от днес \\s?","\n");
+        content = content.replaceAll("Вид на имота:\\s?", "\n");
+        content = content.replaceAll("Етажност:\\s?", "\n");
+        content = content.replaceAll("Вид квартира:\\s?", "\n");
+        content = content.replaceAll("/кв.м\\)\\s?", "/кв.м)\n");
+        content = content.replaceAll("от днес \\s?", "\n");
 
-        content=content.replace("Квадратура: ","");
-        content=content.replace("Вид строителство: ","");
-        content=content.replace("Година на строителство: ","");
+        content = content.replace("Квадратура: ", "");
+        content = content.replace("Вид строителство: ", "");
+        content = content.replace("Година на строителство: ", "");
 
         //Separate data with comma for handling
-        content=content.replaceAll(" (\\d+) кв\\.м",",$1 кв.м"); //sq.meters
-        content=content.replaceAll("(\\d+ кв\\.м) (\\p{L}+)","$1,"); //property material
-        content=content.replaceAll(" ([А-Яа-я\\s]+),\\s+(област\\s+[А-Яа-я\\s]+)",",$1,$2"); //region/address
-        content=content.replaceAll(" (\\d+) етаж","$1,"); //Floors
-        content=content.replace("Обзавеждане:",",");
-        content=content.replace("Цена: ",","); //Price
-        content=content.replaceAll("Номер на етажа:\\s?",","); //
-        content=content.replaceAll(" (\\d{4}) г\\.","$1,"); //Year of construction
-        content=content.replaceAll("(\\d{1,4} \\d{3}) EUR ","$1 EUR,");
-        content=content.replaceAll("(\\d{1,4} \\d{3}) лв. ","$1 лв.,");
+        content = content.replaceAll(" (\\d+) кв\\.м", ",$1 кв.м"); //sq.meters
+        content = content.replaceAll("(\\d+ кв\\.м) (\\p{L}+)", "$1,"); //property material
+        content = content.replaceAll(" ([А-Яа-я\\s]+),\\s+(област\\s+[А-Яа-я\\s]+)", ",$1,$2"); //region/address
+        content = content.replaceAll(" (\\d+) етаж", "$1,"); //Floors
+        content = content.replace("Обзавеждане:", ",");
+        content = content.replace("Цена: ", ","); //Price
+        content = content.replaceAll("Номер на етажа:\\s?", ","); //
+        content = content.replaceAll(" (\\d{4}) г\\.", "$1,"); //Year of construction
+        content = content.replaceAll("(\\d{1,4} \\d{3}) EUR ", "$1 EUR,");
+        content = content.replaceAll("(\\d{1,4} \\d{3}) лв. ", "$1 лв.,");
 
         // Split each content data into parts
         String[] rows = content.split("\n");
@@ -275,12 +271,10 @@ public class CrawlerService extends WebCrawler{
         for (String row : rows) {
             // Split each row into parts
             String[] parts = row.split(","); // ',' separates parameters
-            if(parts.length > 1){
-                if(!parts[0].contains("Toggle navigation")){
-                    Estate estate = extractEstateForAloBg(parts);
-                    if(estate.getTitle() != null){
-                        estateList.add(estate);
-                    }
+            if (parts.length > 1 && !parts[0].contains("Toggle navigation")) {
+                Estate estate = extractEstateForAloBg(parts);
+                if (estate.getTitle() != null) {
+                    estateList.add(estate);
                 }
             }
         }
@@ -293,37 +287,34 @@ public class CrawlerService extends WebCrawler{
         estate.setTitle(contentRow[0]);
 
         //Area
-        if(contentRow[1].contains("кв.м") && !contentRow[1].isBlank()){
+        if (contentRow[1].contains("кв.м") && !contentRow[1].isBlank()) {
             estate.setArea(contentRow[1]);
         }
         //Year of construction
-        if(contentRow[2].trim().length() == 4 && !contentRow[2].isBlank()){
+        if (contentRow[2].trim().length() == 4 && !contentRow[2].isBlank()) {
             estate.setYearOfConstruction(Integer.parseInt(contentRow[2].trim()));
         }
 
         //Floor
-        if(contentRow[3].length()<3 && !contentRow[3].isBlank()){ // if true then [3] is floor
+        if (contentRow[3].length() < 3 && !contentRow[3].isBlank()) { // if true then [3] is floor
             estate.setFloor(Integer.parseInt(contentRow[3]));
-        }
-        else if(contentRow[4].length()<3 && !contentRow[4].isBlank()){
+        } else if (contentRow[4].length() < 3 && !contentRow[4].isBlank()) {
             estate.setFloor(Integer.parseInt(contentRow[4]));
         }
 
         //Price
-        if(contentRow[contentRow.length - 2].contains("EUR") || contentRow[contentRow.length - 2].contains("лв.")){
+        if (contentRow[contentRow.length - 2].contains("EUR") || contentRow[contentRow.length - 2].contains("лв.")) {
             estate.setPrice(contentRow[contentRow.length - 2]);
         }
 
         //Location
-        if(contentRow[contentRow.length - 3].contains("област Други държави") && contentRow[contentRow.length - 4].length() < 45) {
+        if (contentRow[contentRow.length - 3].contains("област Други държави") && contentRow[contentRow.length - 4].length() < 45) {
             //if true, set foreign country
             estate.setLocation(contentRow[contentRow.length - 4].trim());
-        }
-        else if(contentRow[contentRow.length - 4].length() < 15 && contentRow[contentRow.length - 3].contains("област")){
+        } else if (contentRow[contentRow.length - 4].length() < 15 && contentRow[contentRow.length - 3].contains("област")) {
             // if length-4 is true then concat city and region
-            estate.setLocation(contentRow[contentRow.length - 4] + ", " +  contentRow[contentRow.length - 3].trim());
-        }
-        else if(contentRow[contentRow.length - 3].contains("област")) {
+            estate.setLocation(contentRow[contentRow.length - 4] + ", " + contentRow[contentRow.length - 3].trim());
+        } else if (contentRow[contentRow.length - 3].contains("област")) {
             //if length-4 is false then have only region without city
             estate.setLocation(contentRow[contentRow.length - 3].trim());
         }
