@@ -197,9 +197,7 @@ public class CrawlerService extends WebCrawler{
         else{
             pattern = Pattern.compile("(.+?)\\s(?:гр\\.\\s)");
             matcher = pattern.matcher(contentRow);
-            if(matcher.find()){
-                estate.setTitle(matcher.group(1).trim());
-            }
+            estate.setTitle(matcher.group(1).trim());
         }
 
         //Price
@@ -216,12 +214,11 @@ public class CrawlerService extends WebCrawler{
             pattern = Pattern.compile("(?:лв\\.|€|гр\\.)\\s+(.*?)-");
         }
         matcher = pattern.matcher(contentRow);
-        if (matcher.find()){
-            if(matcher.group(1).trim().contains("гр.")){
-                estate.setLocation(matcher.group(1).trim());
-            } else {
-                estate.setLocation("гр. " + matcher.group(1).trim());
-            }
+        //Check location for "гр."
+        if (matcher.find() && matcher.group(1).trim().contains("гр.")){
+            estate.setLocation(matcher.group(1).trim());
+        } else if (matcher.find()){
+            estate.setLocation("гр. " + matcher.group(1).trim());
         }
 
         //Area
@@ -229,16 +226,12 @@ public class CrawlerService extends WebCrawler{
             if(contentRow.contains("кв.м")){
                 pattern = Pattern.compile("(\\d+) кв\\.м");
                 matcher = pattern.matcher(contentRow);
-                if (matcher.find()){
-                    estate.setArea(matcher.group(1).trim() + " кв.м");
-                }
+                estate.setArea(matcher.group(1).trim() + " кв.м");
             }
-            else if (contentRow.contains("дка")){
+            else {
                 pattern = Pattern.compile("(\\d+) дка ");
                 matcher = pattern.matcher(contentRow);
-                if (matcher.find()){
-                    estate.setArea(matcher.group(1).trim() + " дка");
-                }
+                estate.setArea(matcher.group(1).trim() + " дка");
             }
         }
 
@@ -333,9 +326,6 @@ public class CrawlerService extends WebCrawler{
         else if(contentRow[contentRow.length - 3].contains("област")) {
             //if length-4 is false then have only region without city
             estate.setLocation(contentRow[contentRow.length - 3].trim());
-        }
-        else {
-            estate.setLocation(null);
         }
 
         //PublishedBy

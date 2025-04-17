@@ -2,7 +2,6 @@ package com.example.spring_web_crawler_demo.controllers;
 
 import com.example.spring_web_crawler_demo.entities.Estate;
 import com.example.spring_web_crawler_demo.repositories.EstateRepository;
-import com.example.spring_web_crawler_demo.services.EstateService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
