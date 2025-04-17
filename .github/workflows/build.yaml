@@ -4,20 +4,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:5.7
-        ports:
-          - 3306:3306
-        env:
-          MYSQL_ROOT_PASSWORD:
-          MYSQL_DATABASE: db_estates
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -28,18 +14,6 @@ jobs:
           java-version: '17'
           distribution: 'oracle'
           cache: maven
-
-      - name: Wait for MySQL to be ready
-        run: |
-          echo "Waiting for MySQL..."
-          for i in {1..30}; do
-            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
-              echo "MySQL is ready!"
-              break
-            fi
-            echo "Still waiting..."
-            sleep 2
-          done
 
       - name: mvn clean install
         run: mvn clean install
