@@ -1,21 +1,54 @@
 name: build
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: db_estates
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - name: set up java
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'oracle'
           cache: maven
 
-      - name: mvn clean install
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "Waiting for MySQL..."
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
+              echo "✅ MySQL is ready!"
+              break
+            fi
+            echo "⏳ Still waiting for MySQL..."
+            sleep 2
+          done
+
+      - name: Run Maven build and tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: db_estates
+          DB_USER: root
+          DB_PASSWORD: root
         run: mvn clean install
 
       - name: Cache SonarCloud packages
@@ -32,8 +65,22 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and analyze
+      - name: Build and analyze with SonarCloud
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=eXp3r7a_web-crawler-git-actions-sonar-jacoco
+
+      - name: Upload test reports if failed
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: surefire-reports
+          path: target/surefire-reports
+
+      - name: Print test logs (debugging)
+        if: failure()
+        run: |
+          echo "📄 Showing test logs:"
+          ls -l target/surefire-reports || echo "No report directory found"
+          cat target/surefire-reports/*.txt || echo "No test logs found"
