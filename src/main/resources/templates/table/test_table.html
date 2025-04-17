@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paginated Table</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+  <h1>Paginated Table</h1>
+
+  <!-- Table displaying data -->
+  <table class="table table-bordered">
+    <thead>
+    <tr>
+      <th>Estate Title</th>
+      <th>Area</th>
+      <th>Location</th>
+      <th>Price</th>
+      <th>Floor</th>
+      <th>Year of construction</th>
+      <th>Published by</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Loop through the paginated data -->
+    <tr th:each="estate : ${estates}">
+      <td th:text="${estate.title}"></td>
+      <td th:text="${estate.area}"></td>
+      <td th:text="${estate.location}"></td>
+      <td th:text="${estate.price}"></td>
+      <td th:text="${estate.floor}"></td>
+      <td th:text="${estate.yearOfConstruction}"></td>
+      <td th:text="${estate.listingUrl}"></td>
+    </tr>
+    </tbody>
+  </table>
+
+  <!-- Pagination controls using Bootstrap -->
+  <div>
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        <!-- Previous Page Link -->
+        <li class="page-item" th:classappend="${estates.hasPrevious()} ? '' : 'disabled'">
+          <a class="page-link" th:href="@{'/get?page=' + ${estates.number - 1}}" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+
+        <!-- Page Numbers -->
+        <li class="page-item" th:each="i : ${#numbers.sequence(0, estates.totalPages - 1)}">
+          <a class="page-link" th:href="@{'/get?page=' + ${i}}" th:text="${i + 1}"></a>
+        </li>
+
+        <!-- Next Page Link -->
+        <li class="page-item" th:classappend="${estates.hasNext()} ? '' : 'disabled'">
+          <a class="page-link" th:href="@{'/get?page=' + ${estates.number + 1}}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
