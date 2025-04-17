@@ -16,7 +16,6 @@ public class CrawlerController {
     public CrawlerController(CrawlerService crawlerService){
         this.crawlerService = crawlerService;
     }
-    private static final Logger logger = LoggerFactory.getLogger(CrawlerController.class);
 
     @GetMapping("/start-crawl")
     public String startCrawler() {

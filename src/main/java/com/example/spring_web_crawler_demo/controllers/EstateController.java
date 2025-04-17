@@ -16,11 +16,9 @@ import java.util.List;
 public class EstateController {
 
     private final EstateRepository estateRepository;
-    private final EstateService estateService;
 
-    public EstateController(EstateRepository estateRepository, EstateService estateService){
+    public EstateController(EstateRepository estateRepository){
         this.estateRepository = estateRepository;
-        this.estateService = estateService;
     }
 
     @GetMapping("/get")
