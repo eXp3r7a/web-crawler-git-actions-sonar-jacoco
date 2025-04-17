@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest
-public class CrawlerServiceTest {
+class CrawlerServiceTest {
 
     @Autowired
     CrawlerService crawlerService;
@@ -45,7 +45,6 @@ public class CrawlerServiceTest {
 
         Estate estate = new Estate();
         estate.setTitle("Тристаен в Несебър");
-        //estate.setPrice("113800 €");
         estate.setLocation("гр. Несебър");
         estate.setArea("87 кв.м");
         estate.setListingUrl("olx.bg");

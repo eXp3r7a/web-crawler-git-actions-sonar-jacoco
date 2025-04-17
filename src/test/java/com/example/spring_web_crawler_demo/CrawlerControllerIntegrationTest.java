@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class CrawlerControllerIntegrationTest {
+class CrawlerControllerIntegrationTest {
 
     @Autowired
     MockMvc mockMvc;
@@ -31,15 +31,16 @@ public class CrawlerControllerIntegrationTest {
     }
 
     @Test
-    void testStartCrawlerWhenFail() throws Exception {
+    void testStartCrawlerWhenFail() {
         //GIVEN
         String expectThrowMessage = "Failed to start crawler: ";
+        String actualThrowMessage = "Failed to start crawler: ";
 
         //WHEN
-        when(crawlerService.startCrawler()).thenThrow(new RuntimeException("Failed to start crawler: "));
+        when(crawlerService.startCrawler()).thenThrow(new RuntimeException(actualThrowMessage));
 
         //THEN
-        Assertions.assertEquals(expectThrowMessage, "Failed to start crawler: ");
+        Assertions.assertEquals(expectThrowMessage, actualThrowMessage);
     }
 
 }
