@@ -1,20 +1,19 @@
 name: build
-
 on: [push]
-
 jobs:
   build:
+    name: Build and Analyze
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository code
+      - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Set up Java
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
           distribution: 'oracle'
+          java-version: '17'
           cache: maven
 
       - name: Cache SonarCloud packages
@@ -24,26 +23,21 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+      - name: Run tests and generate JaCoCo report
+        run: mvn clean verify
 
-      - name: Run tests and generate coverage
-        run: mvn clean verify jacoco:report
+      - name: Check if JaCoCo report exists
+        run: |
+          ls -lah target/site/jacoco
+          cat target/site/jacoco/jacoco.xml | head -n 20
 
-      - name: List JaCoCo report (debug)
-        run: ls -l target/site/jacoco/
-
-      - name: Run SonarCloud analysis
+      - name: Run SonarCloud scan
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Required by Sonar for PR analysis
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: >
-          mvn sonar:sonar
-          -Dsonar.projectKey=eXp3r7a_web-crawler-git-actions-sonar-jacoco
-#          -Dsonar.organization=your_org_key_here
-          -Dsonar.host.url=https://sonarcloud.io
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+        run: |
+          mvn sonar:sonar \
+            -Dsonar.projectKey=eXp3r7a_web-crawler-git-actions-sonar-jacoco \
+            -Dsonar.organization=YOUR_ORG \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xmlr-git-actions-sonar-jacoco
