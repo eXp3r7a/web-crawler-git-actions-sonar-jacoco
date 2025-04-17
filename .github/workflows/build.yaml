@@ -4,6 +4,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services: # Start MySQL service
+      mysql: # Hostname for connection
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci_password # Set password
+          MYSQL_DATABASE: db_estates
+        ports: [ '3306' ] # Expose port
+        options: >- # Health check for readiness
+          --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -14,6 +24,12 @@ jobs:
           java-version: '17'
           distribution: 'oracle'
           cache: maven
+      - name: Build with Maven
+        run: mvn -B clean install
+        env: # Override properties for tests via environment variables
+           SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_estates
+           SPRING_DATASOURCE_USERNAME: root
+           SPRING_DATASOURCE_PASSWORD: ci_password # Match service password
 
       - name: mvn clean install
         run: mvn clean install
