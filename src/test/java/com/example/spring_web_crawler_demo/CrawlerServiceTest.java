@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest
-class CrawlerServiceTest {
+public class CrawlerServiceTest {
 
     @Autowired
     CrawlerService crawlerService;

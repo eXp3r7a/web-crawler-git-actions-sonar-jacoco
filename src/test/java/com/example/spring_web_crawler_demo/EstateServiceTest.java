@@ -18,7 +18,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class EstateServiceTest {
+public class EstateServiceTest {
 
     @InjectMocks
     EstateService estateService;
