@@ -32,12 +32,6 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=eXp3r7a_web-crawler-git-actions-sonar-jacoco
-
       - name: Build with Maven and generate coverage
         run: mvn clean verify jacoco:report
 
@@ -48,7 +42,13 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v2
         with:
           args: >
-              -Dsonar.projectKey=eXp3r7a_web-crawler-git-actions-sonar-jacoco
-              -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+            -Dsonar.projectKey=eXp3r7a_web-crawler-git-actions-sonar-jacoco
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
           env:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=eXp3r7a_web-crawler-git-actions-sonar-jacoco
