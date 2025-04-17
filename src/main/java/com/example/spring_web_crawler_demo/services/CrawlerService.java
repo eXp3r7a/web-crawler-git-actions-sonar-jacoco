@@ -71,36 +71,40 @@ public class CrawlerService extends WebCrawler{
             data.setContent(content);
 
             if (url.contains("imot") && !url.contains("q-къща/") && !url.contains("/ad/") && !url.contains("/ads/")){
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter("debug-log.txt", true))) {
-                    writer.write("Visited URL: " + url + "\n");
-                    writer.write("title " + title + "\n");
-
-                    if(url.contains("olx.bg")){
-                        List<Estate> estatesOlx = handleCrawlerDataFromOlxBg(content);
-                        if (!estatesOlx.isEmpty()){
-                            //estateRepository.saveAll(estatesOlx);
-                            /*for (Estate estate : estatesOlx){
-                                writer.write("content " + estate + "\n");
-                            }*/
-                        }
-                    }else if (url.contains("alo.bg")){
-                        List<Estate> estatesAloBg = handleCrawlerDataFromAloBg(content);
-                        if(!estatesAloBg.isEmpty()){
-                            //estateRepository.saveAll(estatesAloBg);
-                            /*for(Estate estate : estatesAloBg){
-                                writer.write("content " + estate + "\n");
-                            }*/
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                addEstateResultToDbOrWriteToFile(url, title, content);
             }
 
         } catch (IOException e) {
             e.printStackTrace(); // Handle exceptions
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void addEstateResultToDbOrWriteToFile(String url, String title, String content){
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("debug-log.txt", true))) {
+            writer.write("Visited URL: " + url + "\n");
+            writer.write("title " + title + "\n");
+
+            if(url.contains("olx.bg")){
+                List<Estate> estatesOlx = handleCrawlerDataFromOlxBg(content);
+                if (!estatesOlx.isEmpty()){
+                    //estateRepository.saveAll(estatesOlx);
+                        /*for (Estate estate : estatesOlx){
+                                writer.write("content " + estate + "\n");
+                        }*/
+                }
+            }else if (url.contains("alo.bg")){
+                List<Estate> estatesAloBg = handleCrawlerDataFromAloBg(content);
+                if(!estatesAloBg.isEmpty()){
+                    //estateRepository.saveAll(estatesAloBg);
+                        /*for(Estate estate : estatesAloBg){
+                                writer.write("content " + estate + "\n");
+                        }*/
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -213,11 +217,10 @@ public class CrawlerService extends WebCrawler{
         }
         matcher = pattern.matcher(contentRow);
         if (matcher.find()){
-            estate.setLocation(matcher.group(1).trim());
-
-            //if missing
-            if(!estate.getLocation().contains("гр.")){
-                estate.setLocation("гр. " + estate.getLocation());
+            if(matcher.group(1).trim().contains("гр.")){
+                estate.setLocation(matcher.group(1).trim());
+            } else {
+                estate.setLocation("гр. " + matcher.group(1).trim());
             }
         }
 
@@ -257,17 +260,17 @@ public class CrawlerService extends WebCrawler{
         content=content.replaceAll("/кв.м\\)\\s?","/кв.м)\n");
         content=content.replaceAll("от днес \\s?","\n");
 
-        content=content.replaceAll("Квадратура: ","");
-        content=content.replaceAll("Вид строителство: ","");
-        content=content.replaceAll("Година на строителство: ","");
+        content=content.replace("Квадратура: ","");
+        content=content.replace("Вид строителство: ","");
+        content=content.replace("Година на строителство: ","");
 
         //Separate data with comma for handling
         content=content.replaceAll(" (\\d+) кв\\.м",",$1 кв.м"); //sq.meters
         content=content.replaceAll("(\\d+ кв\\.м) (\\p{L}+)","$1,"); //property material
         content=content.replaceAll(" ([А-Яа-я\\s]+),\\s+(област\\s+[А-Яа-я\\s]+)",",$1,$2"); //region/address
         content=content.replaceAll(" (\\d+) етаж","$1,"); //Floors
-        content=content.replaceAll("Обзавеждане:",",");
-        content=content.replaceAll("Цена: ",","); //Price
+        content=content.replace("Обзавеждане:",",");
+        content=content.replace("Цена: ",","); //Price
         content=content.replaceAll("Номер на етажа:\\s?",","); //
         content=content.replaceAll(" (\\d{4}) г\\.","$1,"); //Year of construction
         content=content.replaceAll("(\\d{1,4} \\d{3}) EUR ","$1 EUR,");
