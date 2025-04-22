@@ -194,7 +194,9 @@ public class CrawlerService extends WebCrawler {
         } else {
             pattern = Pattern.compile("(.+?)\\sгр\\.\\s");
             matcher = pattern.matcher(contentRow);
-            estate.setTitle(matcher.group(1).trim());
+            if(matcher.find()){
+                estate.setTitle(matcher.group(1).trim());
+            }
         }
 
         //Price
@@ -212,10 +214,12 @@ public class CrawlerService extends WebCrawler {
         }
         matcher = pattern.matcher(contentRow);
         //Check location for "гр."
-        if (matcher.find() && matcher.group(1).trim().contains("гр.")) {
-            estate.setLocation(matcher.group(1).trim());
-        } else if (matcher.find()) {
-            estate.setLocation("гр. " + matcher.group(1).trim());
+        if (matcher.find()) {
+            if (matcher.group(1).trim().contains("гр.")) {
+                estate.setLocation(matcher.group(1).trim());
+            } else {
+                estate.setLocation("гр. " + matcher.group(1).trim());
+            }
         }
 
         //Area
@@ -223,11 +227,15 @@ public class CrawlerService extends WebCrawler {
             if (contentRow.contains("кв.м")) {
                 pattern = Pattern.compile("(\\d+) кв\\.м");
                 matcher = pattern.matcher(contentRow);
-                estate.setArea(matcher.group(1).trim() + " кв.м");
+                if (matcher.find()){
+                    estate.setArea(matcher.group(1).trim() + " кв.м");
+                }
             } else {
                 pattern = Pattern.compile("(\\d+) дка ");
                 matcher = pattern.matcher(contentRow);
-                estate.setArea(matcher.group(1).trim() + " дка");
+                if(matcher.find()){
+                    estate.setArea(matcher.group(1).trim() + " дка");
+                }
             }
         }
 
