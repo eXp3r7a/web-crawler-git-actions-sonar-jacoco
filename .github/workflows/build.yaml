@@ -1,63 +1,38 @@
-name: Build, Test and Sonar
-
+name: build
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: user
-          MYSQL_PASSWORD: password
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - name: Set up Java 17
+      - name: set up java
         uses: actions/setup-java@v3
         with:
-          distribution: temurin
           java-version: '17'
+          distribution: 'oracle'
           cache: maven
 
-      # Wait until MySQL container is healthy
-      - name: Wait for MySQL to be healthy
-        run: |
-          # Get container id for mysql service
-          container_id=$(docker ps --filter "ancestor=mysql:8" --format="{{.ID}}")
-          # Wait until the container’s health status is "healthy"
-          while [ "$(docker inspect --format='{{.State.Health.Status}}' $container_id)" != "healthy" ]; do
-            echo "Waiting for MySQL container to be healthy..."
-            sleep 2
-          done
-          echo "MySQL is healthy!"
+      - name: mvn clean install
+        run: mvn clean install
 
-      - name: Verify MySQL container status
-        run: docker ps --filter "ancestor=mysql:8"
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
-      - name: Build and run tests with coverage
-        run: mvn clean verify
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
-      - name: Generate JaCoCo XML Report
-        run: mvn jacoco:report
-
-      - name: SonarCloud Analysis
+      - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # For PR info
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-          -Dsonar.projectKey=eXp3r7a_web-crawler-git-actions-sonar-jacoco
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=eXp3r7a_web-crawler-git-actions-sonar-jacoco
