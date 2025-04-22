@@ -16,7 +16,7 @@ jobs:
           cache: maven
 
       - name: mvn clean install
-        run: mvn clean install
+        run: mvn clean verify
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v3
@@ -33,7 +33,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Generate JaCoCo XML Report
-        run: mvn jacoco:report
+        run: ls -l target/site/jacoco/
 
       - name: Build and analyze
         env:
