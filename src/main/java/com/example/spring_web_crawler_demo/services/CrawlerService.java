@@ -89,7 +89,7 @@ public class CrawlerService extends WebCrawler {
             if (url.contains("olx.bg")) {
                 List<Estate> estatesOlx = handleCrawlerDataFromOlxBg(content);
                 if (!estatesOlx.isEmpty()) {
-                    //estateRepository.saveAll(estatesOlx);
+                    estateRepository.saveAll(estatesOlx);
                         /*for (Estate estate : estatesOlx){
                                 writer.write("content " + estate + "\n");
                         }*/
@@ -97,7 +97,7 @@ public class CrawlerService extends WebCrawler {
             } else if (url.contains("alo.bg")) {
                 List<Estate> estatesAloBg = handleCrawlerDataFromAloBg(content);
                 if (!estatesAloBg.isEmpty()) {
-                    //estateRepository.saveAll(estatesAloBg);
+                    estateRepository.saveAll(estatesAloBg);
                         /*for(Estate estate : estatesAloBg){
                                 writer.write("content " + estate + "\n");
                         }*/

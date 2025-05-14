@@ -1,6 +1,7 @@
 package com.example.spring_web_crawler_demo.repositories;
 
 import com.example.spring_web_crawler_demo.entities.Estate;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface EstateRepository extends CrudRepository<Estate, Long> {
+public interface EstateRepository extends JpaRepository<Estate, Long> {
     @Query("SELECT e from Estate e WHERE " +
             "LOWER(e.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(e.area) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
